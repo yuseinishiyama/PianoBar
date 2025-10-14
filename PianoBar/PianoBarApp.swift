@@ -36,7 +36,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self?.audioEngine.playNote(note, velocity: velocity, on: isOn)
         }
 
+        // Update menu when devices change
+        midiManager.deviceChangeHandler = { [weak self] in
+            self?.updateMenu()
+        }
+
         // Create menu
+        updateMenu()
+    }
+
+    func updateMenu() {
         let menu = NSMenu()
 
         // Simple status text

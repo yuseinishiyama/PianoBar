@@ -9,6 +9,7 @@ class MIDIManager {
     private var inputPort = MIDIPortRef()
     var noteHandler: ((UInt8, UInt8, Bool) -> Void)?  // note, velocity, isOn
     private(set) var isConnected = false
+    var deviceChangeHandler: (() -> Void)?  // Called when devices change
 
     init() {
         globalMIDIManager = self
@@ -25,8 +26,19 @@ class MIDIManager {
     }
 
     private func setupMIDI() {
-        // Create MIDI client
-        let clientStatus = MIDIClientCreate("PianoBar" as CFString, nil, nil, &midiClient)
+        // Notification callback for MIDI setup changes
+        let notifyCallback: MIDINotifyProc = { (notification, connRefCon) in
+            let message = notification.pointee
+            if message.messageID == .msgSetupChanged {
+                // MIDI setup changed - reconnect
+                DispatchQueue.main.async {
+                    globalMIDIManager?.reconnectMIDI()
+                }
+            }
+        }
+
+        // Create MIDI client with notification callback
+        let clientStatus = MIDIClientCreate("PianoBar" as CFString, notifyCallback, nil, &midiClient)
         guard clientStatus == noErr else {
             print("Failed to create MIDI client: \(clientStatus)")
             return
@@ -54,6 +66,26 @@ class MIDIManager {
             let source = MIDIGetSource(i)
             MIDIPortConnectSource(inputPort, source, nil)
         }
+    }
+
+    private func reconnectMIDI() {
+        print("MIDI: Device change detected, reconnecting...")
+
+        // Disconnect all existing connections
+        let oldSourceCount = MIDIGetNumberOfSources()
+        print("MIDI: Disconnecting \(oldSourceCount) sources")
+        for i in 0..<oldSourceCount {
+            let source = MIDIGetSource(i)
+            MIDIPortDisconnectSource(inputPort, source)
+        }
+
+        // Reconnect to all current sources
+        connectToAllSources()
+        let newSourceCount = MIDIGetNumberOfSources()
+        print("MIDI: Connected to \(newSourceCount) sources")
+
+        // Notify UI to update
+        deviceChangeHandler?()
     }
 
     private func handleMIDIPackets(_ packetList: UnsafePointer<MIDIPacketList>) {
