@@ -19,7 +19,7 @@ A minimal macOS menu bar app that makes your MIDI keyboard always playable. No s
 ## Usage
 
 1. Connect your MIDI keyboard
-2. Launch PianoBar - a 🎵 icon appears in your menu bar
+2. Launch PianoBar
 3. Play!
 
 To quit: Click the menu bar icon → Quit PianoBar

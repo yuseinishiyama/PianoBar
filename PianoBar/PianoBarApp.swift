@@ -28,7 +28,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "music.note", accessibilityDescription: "PianoBar")
+            button.image = NSImage(systemSymbolName: "pianokeys", accessibilityDescription: "PianoBar")
         }
 
         // Initialize audio and MIDI
