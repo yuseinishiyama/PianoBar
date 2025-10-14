@@ -12,11 +12,7 @@ import AppKit
 struct PianoBarApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
-    var body: some Scene {
-        Settings {
-            EmptyView()
-        }
-    }
+    var body: some Scene {}
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate {
