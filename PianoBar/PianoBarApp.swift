@@ -42,7 +42,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Create menu
         let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: "MIDI: Connected", action: nil, keyEquivalent: ""))
+
+        // Simple status text
+        let status = midiManager.isConnected ? "Connected" : "No MIDI Device"
+        menu.addItem(NSMenuItem(title: "MIDI: \(status)", action: nil, keyEquivalent: ""))
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Quit PianoBar", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
 

@@ -8,22 +8,40 @@ class MIDIManager {
     private var midiClient = MIDIClientRef()
     private var inputPort = MIDIPortRef()
     var noteHandler: ((UInt8, UInt8, Bool) -> Void)?  // note, velocity, isOn
+    private(set) var isConnected = false
 
     init() {
         globalMIDIManager = self
         setupMIDI()
     }
 
+    deinit {
+        if inputPort != 0 {
+            MIDIPortDispose(inputPort)
+        }
+        if midiClient != 0 {
+            MIDIClientDispose(midiClient)
+        }
+    }
+
     private func setupMIDI() {
         // Create MIDI client
-        MIDIClientCreate("PianoBar" as CFString, nil, nil, &midiClient)
+        let clientStatus = MIDIClientCreate("PianoBar" as CFString, nil, nil, &midiClient)
+        guard clientStatus == noErr else {
+            print("Failed to create MIDI client: \(clientStatus)")
+            return
+        }
 
         // Create input port with simple callback
         let callback: MIDIReadProc = { (packetList, srcConnRefCon, connRefCon) in
             globalMIDIManager?.handleMIDIPackets(packetList)
         }
 
-        MIDIInputPortCreate(midiClient, "PianoBar Input" as CFString, callback, nil, &inputPort)
+        let portStatus = MIDIInputPortCreate(midiClient, "PianoBar Input" as CFString, callback, nil, &inputPort)
+        guard portStatus == noErr else {
+            print("Failed to create MIDI port: \(portStatus)")
+            return
+        }
 
         // Connect to all MIDI sources
         connectToAllSources()
@@ -31,6 +49,7 @@ class MIDIManager {
 
     private func connectToAllSources() {
         let sourceCount = MIDIGetNumberOfSources()
+        isConnected = sourceCount > 0
         for i in 0..<sourceCount {
             let source = MIDIGetSource(i)
             MIDIPortConnectSource(inputPort, source, nil)
