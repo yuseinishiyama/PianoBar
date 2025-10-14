@@ -21,6 +21,8 @@ struct PianoBarApp: App {
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem!
+    var midiManager: MIDIManager!
+    var audioEngine: AudioEngine!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -29,8 +31,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             button.image = NSImage(systemSymbolName: "music.note", accessibilityDescription: "PianoBar")
         }
 
+        // Initialize audio and MIDI
+        audioEngine = AudioEngine()
+        midiManager = MIDIManager()
+
+        // Connect MIDI events to audio
+        midiManager.noteHandler = { [weak self] note, velocity, isOn in
+            self?.audioEngine.playNote(note, velocity: velocity, on: isOn)
+        }
+
+        // Create menu
         let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: "MIDI: Disconnected", action: nil, keyEquivalent: ""))
+        menu.addItem(NSMenuItem(title: "MIDI: Connected", action: nil, keyEquivalent: ""))
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Quit PianoBar", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
 
