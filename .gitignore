@@ -1,0 +1,12 @@
+# Xcode user-specific files
+xcuserdata/
+
+# macOS
+.DS_Store
+
+# Build directories
+build/
+DerivedData/
+
+# Archives
+*.xcarchive
