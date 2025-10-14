@@ -61,21 +61,28 @@ class MIDIManager {
         var packet = packets.packet
 
         for _ in 0..<packets.numPackets {
-            // Safely extract bytes from packet data
             let length = Int(packet.length)
-            if length >= 3 {
-                // Direct byte access without Mirror
-                withUnsafeBytes(of: packet.data) { bytes in
-                    let status = bytes[0] & 0xF0
-                    let note = bytes[1]
-                    let velocity = bytes[2]
 
-                    // Handle Note On (0x90) and Note Off (0x80)
-                    DispatchQueue.main.async { [weak self] in
-                        if status == 0x90 && velocity > 0 {
-                            self?.noteHandler?(note, velocity, true)
-                        } else if status == 0x80 || (status == 0x90 && velocity == 0) {
-                            self?.noteHandler?(note, velocity, false)
+            // Only process valid Note On/Off messages (exactly 3 bytes)
+            if length == 3 {
+                withUnsafeBytes(of: packet.data) { bytes in
+                    let statusByte = bytes[0]
+                    let status = statusByte & 0xF0
+
+                    // Only process Note On (0x90) and Note Off (0x80)
+                    if status == 0x90 || status == 0x80 {
+                        let note = bytes[1]
+                        let velocity = bytes[2]
+
+                        // Validate note and velocity are in valid MIDI range
+                        if note <= 127 && velocity <= 127 {
+                            DispatchQueue.main.async { [weak self] in
+                                if status == 0x90 && velocity > 0 {
+                                    self?.noteHandler?(note, velocity, true)
+                                } else if status == 0x80 || (status == 0x90 && velocity == 0) {
+                                    self?.noteHandler?(note, velocity, false)
+                                }
+                            }
                         }
                     }
                 }
