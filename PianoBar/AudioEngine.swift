@@ -7,7 +7,14 @@ class AudioEngine {
 
     init() {
         setupAudio()
-        setupNotifications()
+
+        // Listen for audio device changes
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleConfigurationChange),
+            name: .AVAudioEngineConfigurationChange,
+            object: engine
+        )
     }
 
     deinit {
@@ -39,19 +46,8 @@ class AudioEngine {
         }
     }
 
-    private func setupNotifications() {
-        // Listen for engine configuration changes (triggered when audio hardware changes on macOS)
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleConfigurationChange),
-            name: .AVAudioEngineConfigurationChange,
-            object: engine
-        )
-    }
-
     @objc private func handleConfigurationChange(notification: Notification) {
-        print("Audio configuration changed (device switch detected), restarting audio engine...")
-
+        print("Audio output changed, restarting...")
         // The engine stops automatically on configuration change
         // Just re-run the setup which will restart everything properly
         isReady = false

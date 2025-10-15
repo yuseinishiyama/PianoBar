@@ -69,20 +69,10 @@ class MIDIManager {
     }
 
     private func reconnectMIDI() {
-        print("MIDI: Device change detected, reconnecting...")
-
-        // Disconnect all existing connections
-        let oldSourceCount = MIDIGetNumberOfSources()
-        print("MIDI: Disconnecting \(oldSourceCount) sources")
-        for i in 0..<oldSourceCount {
-            let source = MIDIGetSource(i)
-            MIDIPortDisconnectSource(inputPort, source)
-        }
-
-        // Reconnect to all current sources
+        // Simply reconnect to all current sources
         connectToAllSources()
-        let newSourceCount = MIDIGetNumberOfSources()
-        print("MIDI: Connected to \(newSourceCount) sources")
+        let sourceCount = MIDIGetNumberOfSources()
+        print("MIDI devices changed: \(sourceCount) device(s) connected")
 
         // Notify UI to update
         deviceChangeHandler?()
