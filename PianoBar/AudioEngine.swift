@@ -7,15 +7,20 @@ class AudioEngine {
 
     init() {
         setupAudio()
+        setupNotifications()
     }
 
     deinit {
+        NotificationCenter.default.removeObserver(self)
         engine.stop()
     }
 
     private func setupAudio() {
-        engine.attach(sampler)
-        engine.connect(sampler, to: engine.mainMixerNode, format: nil)
+        // Only attach if not already attached
+        if !engine.attachedNodes.contains(sampler) {
+            engine.attach(sampler)
+            engine.connect(sampler, to: engine.mainMixerNode, format: nil)
+        }
 
         do {
             try engine.start()
@@ -32,6 +37,25 @@ class AudioEngine {
         } catch {
             print("Failed to setup audio engine: \(error)")
         }
+    }
+
+    private func setupNotifications() {
+        // Listen for engine configuration changes (triggered when audio hardware changes on macOS)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleConfigurationChange),
+            name: .AVAudioEngineConfigurationChange,
+            object: engine
+        )
+    }
+
+    @objc private func handleConfigurationChange(notification: Notification) {
+        print("Audio configuration changed (device switch detected), restarting audio engine...")
+
+        // The engine stops automatically on configuration change
+        // Just re-run the setup which will restart everything properly
+        isReady = false
+        setupAudio()
     }
 
     func playNote(_ note: UInt8, velocity: UInt8, on: Bool) {
