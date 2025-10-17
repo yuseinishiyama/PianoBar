@@ -16,15 +16,26 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Extract version from tag
+      id: version
+      run: |
+        # Extract version from tag (remove 'v' prefix if present)
+        VERSION=${GITHUB_REF_NAME#v}
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        echo "Building version: $VERSION"
+
     - name: Build Release
       run: |
         # Xcode is pre-installed on GitHub runners
+        # Set both MARKETING_VERSION and CURRENT_PROJECT_VERSION to the tag version
         xcodebuild -project PianoBar.xcodeproj \
                    -scheme PianoBar \
                    -configuration Release \
                    -derivedDataPath build \
                    clean build \
-                   ONLY_ACTIVE_ARCH=NO
+                   ONLY_ACTIVE_ARCH=NO \
+                   MARKETING_VERSION=${{ steps.version.outputs.VERSION }} \
+                   CURRENT_PROJECT_VERSION=${{ steps.version.outputs.VERSION }}
 
     - name: Create ZIP
       run: |
