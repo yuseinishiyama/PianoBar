@@ -52,6 +52,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let status = midiManager.isConnected ? "Connected" : "No MIDI Device"
         menu.addItem(NSMenuItem(title: "MIDI: \(status)", action: nil, keyEquivalent: ""))
         menu.addItem(NSMenuItem.separator())
+        menu.addItem(NSMenuItem(title: "About PianoBar", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "Quit PianoBar", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
 
         statusItem.menu = menu
